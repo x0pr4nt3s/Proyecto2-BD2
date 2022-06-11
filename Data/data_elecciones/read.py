@@ -25,7 +25,7 @@ class Indice_invertido:
   N_total=0
   Indice={}
   lista_de_files=[
-    "tweets_2018-08-07.json",
+    "./Data/data_elecciones/tweets_2018-08-07.json",
     #"tweets_2018-08-08.json",
     #"tweets_2018-08-09.json",
     #"tweets_2018-08-10.json",
@@ -248,22 +248,10 @@ class Indice_invertido:
 
     return Indice_query
 
-  def compare_query_cosenos(self,d1,d2):
-    #Indice_docs={}
-    # TF.idf
-    documents=d2.keys()
-    for i in documents:
-      if(i!="df"):
-        ids=d2.get(i)
-        #print(ids)
-      
-
-    #ids=d2.get(docu)
-    #print(documents)
 
   def compare_total(self,d1):
     Indice_docs = {}
-    Indice_cosenos = {}
+    lista_cosenos = {}
 
     terminos_comunes1=d1.keys()
     for f in terminos_comunes1:
@@ -313,28 +301,26 @@ class Indice_invertido:
         normalizacion=math.sqrt(norma1*norma2)
         #print(normalizacion)
         coseno=dot_product/normalizacion
-        #if(d not in Indice_cosenos):
-        #  Indice_cosenos
-        #else:
-        #  Indice_cosenos[d][id]=coseno
+        if(coseno not in lista_cosenos):
+          word_edit=str(d)+" "+str(id)
+          lista_cosenos[coseno]=[]
+          lista_cosenos[coseno].append(word_edit)
+        else:
+          word_edit=str(d)+" "+str(id)
+          lista_cosenos[coseno].append(word_edit)
 
-        #print("+++++++++++++++++")
-            
-      #print(ids)
-    #Indice_cosenos.sort(key=, reverse=True)
-    #sorted_json_data = json.dumps(Indice_cosenos,sort_keys=True)
-    #print(sorted_json_data)
+    sorted_cosenos = json.dumps(lista_cosenos,sort_keys=True)
+    cosenos=json.loads(sorted_cosenos)
+    return cosenos
 
-
-    #print(Indice_docs)
-    #print("a")
 
 
 reader=Indice_invertido()
 
 #result=reader.read_indice()
 
-result=reader.construct_indice()
-document_query=reader.query("el pueblo es hacer luis un soplon, buena hacer prueba como tambien tu lo eres soplon y como la politica tambien es de soplones") 
-reader.compare_total(document_query)
+#result=reader.construct_indice()
+#document_query=reader.query("el pueblo es hacer luis un soplon, buena hacer prueba como tambien tu lo eres soplon y como la politica tambien es de soplones") 
+#reader.compare_total(document_query)
 #Indice_invertido.readfile("tweets_2018-08-07.json")
+#el pueblo es hacer un soplon, buena hacer prueba como tambien tu lo eres soplon y como la politica tambien es de soplones y demas soplones del pueblo para tambien vivir de manera corrupta porque si no es asi los presidentes siguen una causa para seguir en la politica
