@@ -1,5 +1,5 @@
 from cmath import log
-from bs4 import BeautifulSoup
+#from bs4 import BeautifulSoup
 from select import select
 from tracemalloc import stop
 from typing import final
@@ -318,7 +318,7 @@ class Indice_invertido:
         #else:
         #  Indice_cosenos[d][id]=coseno
 
-        print("+++++++++++++++++")
+        #print("+++++++++++++++++")
             
       #print(ids)
     #Indice_cosenos.sort(key=, reverse=True)

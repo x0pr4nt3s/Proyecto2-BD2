@@ -9,6 +9,8 @@
 
 Este proyecto consiste en aplicar algoritmos de busqueda y recuperacion de la informacion basada en el contenido.Para esto se construye un Indice Invertido para tareas de busqueda y recuperacion en documentos de texto, usando el modelo de recuperacion por ranking para consultas de texto libre.Los datos utilizados como contenido son un conjunto de tweets en formato json almacenados en memoria secundaria.
 
+##### NOTA: El video se encuentra al final del documento
+
 ## Indice Invertido
 
 ### Preprocesamiento 
@@ -183,11 +185,80 @@ tweet = {
 La estructura del indice seria de esta manera:
 
 ```
+"impresent": {
+    "df": 4,
+    "tweets_2018-08-07.json": {
+      "1571": {
+        "tf": 1
+      },
+      "1579": {
+        "tf": 1
+      },
+      "1591": {
+        "tf": 1
+      },
+      "1625": {
+        "tf": 1
+      }
+   	}
+  }
 ```
 
 
 
 ## Query
+
+Creamos un indice en base a los terminos que podemos encontrar en el texto de la consulta
+
+```
+  def query(self,texto):
+    Indice_query = {}
+    new_texto = self.parse(texto)
+    #print(new_texto)
+    # Creando indice para la query 
+    for term in new_texto:
+      if(len(Indice_query) > 0):
+        if(term not in Indice_query.keys()):
+          Indice_query[term]={"df":1}        
+          Indice_query[term]["query"]={"tf":1}
+        else:
+          new_tf=Indice_query[term]["query"].get("tf")+1
+          Indice_query[term]["query"]={"tf":new_tf}
+      else:
+        Indice_query[term]={"df":1}        
+        Indice_query[term]["query"]={"tf":1}
+```
+
+Se toma una lista de todos los documentos a los que pertenecen los terminos, se obtienen los score de cada termino por cada documento y se realiza la normalizacion
+
+```
+    for d in documentos:
+      ids=Indice_docs.get(d).keys()
+      for id in ids:
+        values_TF_IDF_1=[]
+        values_TF_IDF_2=[]
+        for term in terminos_comunes1:
+
+          # CALCULANDO TF-IDF DE CADA UNO
+          if (term not in Indice_docs.get(d).get(id).keys()):
+            values_TF_IDF_1.append(0)
+          else:
+            tf=(1 + math.log(Indice_docs.get(d).get(id).get(term),10))
+            idf=((1 + math.log((self.N_total/self.Indice.get(term).get("df")),10)))
+            values_TF_IDF_1.append(tf*idf)
+            #print("a")
+          values_TF_IDF_2.append(d1.get(term).get("query").get("tf"))
+```
+
+  ## Pruebas de Uso y Presentacion
+
+(link)
+
+
+
+
+
+
 
 
 
