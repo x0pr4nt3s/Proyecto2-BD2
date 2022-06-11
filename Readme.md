@@ -252,8 +252,7 @@ Se toma una lista de todos los documentos a los que pertenecen los terminos, se 
 
   ## Pruebas de Uso y Presentacion
 
-(link)
-
+!(https://drive.google.com/file/d/1SeBRB0PNK-kOHta6ToTz9SqzG0BLIUvI/view?usp=sharing)[link]
 
 
 
