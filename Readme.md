@@ -1,2 +1,213 @@
-init
-init
+# Proyecto 2 - BD2 - Recuperacion de Documentos de Texto
+
+## Integrantes 
+
+* Cristhoper Heredia Lapa Michel
+* Luis Ponce Contreras Eduardo
+
+## Introduccion
+
+Este proyecto consiste en aplicar algoritmos de busqueda y recuperacion de la informacion basada en el contenido.Para esto se construye un Indice Invertido para tareas de busqueda y recuperacion en documentos de texto, usando el modelo de recuperacion por ranking para consultas de texto libre.Los datos utilizados como contenido son un conjunto de tweets en formato json almacenados en memoria secundaria.
+
+## Indice Invertido
+
+### Preprocesamiento 
+
+#### Filtrado de stopwords
+
+Uso de NTLK.
+
+```
+stoplist = stopwords.words("spanish")
+stoplist += ['?','aqui','.',',','»','«','â','ã','>','<','(',')','º','u']
+```
+
+#### Stemming
+
+```
+stemmer = SnowballStemmer('spanish')
+```
+
+Uso:
+
+```
+        if(word_lower not in stoplist): 
+          token = stemmer.stem(word_lower)
+```
+
+
+
+#### Tokenizacion
+
+Se hace uso de estas funciones para filtrar los terminos dentro de cada tweet.
+
+```
+def break_emojis(self,emoji):
+    return emoji.encode('ascii', 'ignore').decode('ascii')
+
+  def break_url(self, text):
+    t = text.find('https://t.co/')
+    if t != -1:
+      text = re.sub('https://t.co/\w{10}', '', text)
+      #print(text)
+    return text
+
+
+  def break_special_character(self, text):
+    characters = ('\"','\'','º','&','¿','?','¡','!',' “','…','👏',
+								'-','—','‘','•','›','‼','€','£','↑','→','↓','↔',
+								'↘','↪','√','∧','⊃','⌒','⌛','⏬','⏯','⏰','⏹',':',
+                '@','³','.','Â',',', ';', ':', '%', '#', '¿', '?', 
+                '_', '~', '-', '`', 'jaja', 'jaj', 'ajaj', 'aa', 'ss',
+                'jjj', 'jj', 'gg', 'rrr', 'www', 'zz', '@', '$', '(',
+                ')', '&', '^', '=', '+', '{', '}', '.','[', ']', '*',
+                '¡', '!', '/', '\\', '\'', '\"', '<', '>', '|', '…',
+                '“', '“', '👏', '🤣', '🚨', '🙋', '🤔', '🙌', '🇵', '🇪',
+                '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
+                'â', '±', '©'
+                )
+```
+
+El filtro se realiza desde el texto total y tambien por cada termino:
+
+```
+  def parse(self, query):
+    new_query=self.break_url(query)
+    new_query=self.break_special_character(new_query)
+
+    finalquery = []
+    texto_tokens=nltk.word_tokenize(new_query)
+
+    for i in texto_tokens:
+      a,b = 'áéíóúüñÃ','aeiouuna'
+      trans = str.maketrans(a,b)
+      i = i.translate(trans)
+      filter2=len(self.break_emojis(i))
+
+      if(filter2>1):
+        word_lower=i.lower()
+        if(word_lower not in stoplist): 
+          token = stemmer.stem(word_lower)
+          #print(token)
+          finalquery.append(token)
+
+    return finalquery
+
+```
+
+### Construccion del Indice invertido
+
+Primero se realiza una lectura por cada archivo con formato "JSON" en la cual diferenciamos los tweets de los retweets
+
+```
+  def readfile(self, filename):
+    lista_tweets=[]
+    f = open(filename, "r", encoding='latin-1')
+    values = json.loads(f.read())
+    it = 0
+    for i in values:
+      tweet = {}
+      tweet["file"] = filename
+      tweet["id"] = it 
+      if i.get("RT_text"):
+        tweet["text"] = self.parse(i["RT_text"])
+      else:
+        tweet["text"] = self.parse(i["text"])    
+      lista_tweets.append(tweet)
+      it += 1
+
+    f.close()
+    return lista_tweets
+```
+
+Almacenando todo en una lista de tweets con esta estructura por cada tweet:
+
+```
+tweet = {
+	'file':'tweets_2018-08-07.json',
+	'id':1660,
+	'text':['recuerdosperu', 'luis', 'castaaed', 'pard', 'mentir', 'pretend', 'alcald', 'lim', 'pued', 'esper', 'padr', 'corrupt']
+}
+```
+
+ Por ultimo creamos el indice invertido usando las siguientes condiciones:
+
+* La estructura almacenara un indice de terminos en la cual dentro de cada termino se encuentran los nombres de los archivos de formato "JSON" almacenados en memoria secundaria.
+* Ademas de almacenar los nombres de los archivos dentro del termino tambien se almacenan los DF de cada termino.
+* Dentro de cada nombre de archivo se almacenara el "ID" del tweet.
+* Dentro de cada "ID" de tweet se almacenara el "TF" equivalente al texto de ese tweet.
+
+```
+  def construct_indice(self):
+    for i in self.lista_de_files:
+      self.lista_de_tweets.append(self.readfile(i))
+
+    for j in self.lista_de_tweets:
+      for i in j:
+        self.N_total+=1
+        texto=i.get("text")
+        #cont_tf=1
+        file_indi=i.get("file")
+        for term in texto:
+          # df y tf
+        
+          if(len(self.Indice) > 0):
+            if term not in self.Indice:
+              self.Indice[term]={"df":1}
+              self.Indice[term][file_indi]={}            
+              self.Indice[term][file_indi][i.get("id")]={"tf":1}
+            else:
+              lista_files_del_term=[]
+              lista_files_del_term=self.Indice[term].keys()
+              if (file_indi not in lista_files_del_term):
+                new_df=int(self.Indice.get(term).get('df'))+1
+                self.Indice[term][file_indi]={}            
+                self.Indice[term][file_indi][i.get("id")]={"tf":1}
+                self.Indice[term]["df"]=new_df
+              else:
+                lista_ids_del_term=self.Indice[term][file_indi].keys()
+                if(i.get("id") not in lista_ids_del_term):
+                  new_df=int(self.Indice.get(term).get("df"))+1              
+                  self.Indice[term][file_indi][i.get("id")]={"tf":1}
+                  self.Indice[term]["df"]=new_df
+                else:
+                new_tf=int(self.Indice.get(term).get(file_indi).get(i.get("id")).get("tf"))+1
+                  self.Indice[term][file_indi][i.get("id")]={"tf":new_tf}                  
+          else:
+            self.Indice[term]={"df":1}
+            self.Indice[term][file_indi]={}
+            self.Indice[term][file_indi][i.get("id")]={"tf":1}
+
+```
+
+La estructura del indice seria de esta manera:
+
+```
+```
+
+
+
+## Query
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
